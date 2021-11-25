@@ -20,7 +20,7 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase) {
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
-	iin := c.FormValue("login") //temporary
+	iin := c.FormValue("iin") //temporary
 
 	//TODO: check authorization from service-1
 	//TODO: get IIN from token
