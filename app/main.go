@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
+	_handler "transaction-service/accounts/delivery/http"
 	_repo "transaction-service/accounts/repository/postgres"
-    _usecase "transaction-service/accounts/usecase"
+	_usecase "transaction-service/accounts/usecase"
+
 	"github.com/labstack/echo/v4"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -26,8 +29,14 @@ func main() {
 	defer db.Close()
 
 	accRepo := _repo.NewAccountRepo(db)
-    accUsecase := _usecase.NewAccountUsecase(accRepo)
+	accUsecase := _usecase.NewAccountUsecase(accRepo)
 	e := echo.New()
+	_handler.NewAccountHandler(e, accUsecase)
+
+	err := e.Start("127.0.0.1:8181")
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal(`shutting down the server`, err)
+	}
 }
 
 func connectDB() *pgxpool.Pool {

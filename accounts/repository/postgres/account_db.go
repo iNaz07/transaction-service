@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"time"
 	"transaction-service/domain"
 
@@ -13,7 +12,7 @@ type AccountRepo struct {
 	Conn *pgxpool.Pool
 }
 
-func NewAccountRepo(conn *pgxpool.Pool) *domain.AccountRepo {
+func NewAccountRepo(conn *pgxpool.Pool) domain.AccountRepo {
 	return &AccountRepo{Conn: conn}
 }
 

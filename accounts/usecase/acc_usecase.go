@@ -8,19 +8,23 @@ import (
 )
 
 type AccountUsecase struct {
-	AccRepo *domain.AccountRepo
+	AccRepo domain.AccountRepo
 }
 
-func NewAccountUsecase(repo *domain.AccountRepo) *domain.AccountUsecase {
+func NewAccountUsecase(repo domain.AccountRepo) domain.AccountUsecase {
 	return &AccountUsecase{AccRepo: repo}
 }
 
 //TODO: generate number
-func (au *AccountUsecase) CreateAccount(acc *domain.Account) error {
-	acc.RegisterDate = time.Now().Format("2006-01-02 15:04:05")
-	acc.AccountNumber = utils.GenerateNumber()
+func (au *AccountUsecase) CreateAccount(iin string) error {
+	acc := &domain.Account{
+		IIN:           iin,
+		RegisterDate:  time.Now().Format("2006-01-02 15:04:05"),
+		Balance:       0,
+		AccountNumber: utils.GenerateNumber(),
+	}
 
-	if err := au.CreateAccount(acc); err != nil {
+	if err := au.AccRepo.CreateAccountRepo(acc); err != nil {
 		return fmt.Errorf("create account error: %w", err)
 	}
 	return nil
@@ -34,7 +38,7 @@ func (au *AccountUsecase) DeleteAccount(iin string) error {
 }
 
 func (au *AccountUsecase) GetAccountByIIN(iin string) (*domain.Account, error) {
-	account, err := au.AccRepo.GetAccountByIIN(iin)
+	account, err := au.AccRepo.GetAccountByIINRepo(iin)
 	if err != nil {
 		return nil, fmt.Errorf("account not found: %w", err)
 	}

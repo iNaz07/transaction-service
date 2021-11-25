@@ -16,7 +16,7 @@ type AccountRepo interface {
 }
 
 type AccountUsecase interface {
-	CreateAccount(acc *Account) error
+	CreateAccount(iin string) error
 	DeleteAccount(iin string) error
 	GetAccountByIIN(iin string) (*Account, error)
 	GetAllAccount() ([]*Account, error)
