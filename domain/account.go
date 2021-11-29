@@ -3,7 +3,7 @@ package domain
 type Account struct {
 	ID            int64  `json:"id"`
 	IIN           string `json:"iin"`
-	AccountNumber int64  `json:"number"`
+	AccountNumber string  `json:"number"`
 	Balance       int64  `json:"balance"`
 	RegisterDate  string `json:"registerDate"`
 }

@@ -71,7 +71,7 @@ func connectDB() *pgxpool.Pool {
 		id SERIAL PRIMARY KEY,
         iin VARCHAR (255) NOT NULL,
 		balance BIGINT,
-        number BIGINT,
+        number VARCHAR (255) NOT NULL,
 		registerDate VARCHAR (255) NOT NULL
 	);
 	`)

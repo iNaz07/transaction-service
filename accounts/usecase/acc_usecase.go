@@ -15,7 +15,7 @@ func NewAccountUsecase(repo domain.AccountRepo) domain.AccountUsecase {
 	return &AccountUsecase{AccRepo: repo}
 }
 
-//TODO: generate number
+//TODO: check generate number
 func (au *AccountUsecase) CreateAccount(iin string) error {
 	acc := &domain.Account{
 		IIN:           iin,
