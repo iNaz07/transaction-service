@@ -44,7 +44,27 @@ func (ar *AccountRepo) DepositMoneyRepo(iin string, amount int64) error {
 }
 
 func (ar *AccountRepo) TransferMoneyRepo(senderIIN, recipientIIN string, amount int64) error {
-	
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+
+	tx, err := ar.Conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, recipientIIN); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 WHERE iin = $2", amount, senderIIN); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
 	return nil
 }
 

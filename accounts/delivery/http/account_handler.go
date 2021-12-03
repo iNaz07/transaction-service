@@ -23,24 +23,15 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase) {
 	e.POST("/account/transfer", handler.TransferMoney)
 }
 
+//TODO: check auth
 func (aH *AccountHandler) TransferMoney(c echo.Context) error {
 	senderIIN := c.FormValue("iin")                    //must get from cookie
+	recipientIIN := c.FormValue("recipiin")            //get from front
 	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	//TODO: check auth
-	acc, err := aH.AccUsecase.GetAccountByIIN(senderIIN) //check if account exists
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	if acc.Balance <= int64(amount) {
-		return c.String(http.StatusBadRequest, "not enough balance to transfer")
-	}
-	recipientIIN := c.FormValue("recipiin") //get from front
-	if _, err := aH.AccUsecase.GetAccountByIIN(recipientIIN); err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("recipient account not found: %v", err))
-	}
+
 	if err := aH.AccUsecase.TransferMoney(senderIIN, recipientIIN, int64(amount)); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
 	}

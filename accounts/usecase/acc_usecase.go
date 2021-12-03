@@ -43,6 +43,17 @@ func (au *AccountUsecase) DepositMoney(iin, balance string) error {
 }
 
 func (au *AccountUsecase) TransferMoney(senderIIN, recipientIIN string, amount int64) error {
+	acc, err := au.GetAccountByIIN(senderIIN) //check if account exists
+	if err != nil {
+		return fmt.Errorf("sender account doesn't exist: %w", err)
+	}
+	if acc.Balance <= amount {
+		return fmt.Errorf("not enough balance to transfer")
+	}
+	if _, err := au.AccRepo.GetAccountByIINRepo(recipientIIN); err != nil {
+		return fmt.Errorf("recipient account doesn't exist: %w", err)
+	}
+
 	if err := au.AccRepo.TransferMoneyRepo(senderIIN, recipientIIN, amount); err != nil {
 		return fmt.Errorf("transfer money error: %w", err)
 	}
