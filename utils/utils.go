@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// TODO: generate uniq number
 func GenerateNumber() string {
 	control := strconv.Itoa(rand.Intn(99))          //контрольный номер
 	nuniq := strconv.Itoa(rand.Intn(9999999999999)) // уникальный номер счета

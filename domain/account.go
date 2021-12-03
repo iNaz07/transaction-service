@@ -3,7 +3,7 @@ package domain
 type Account struct {
 	ID            int64  `json:"id"`
 	IIN           string `json:"iin"`
-	AccountNumber string  `json:"number"`
+	AccountNumber string `json:"number"`
 	Balance       int64  `json:"balance"`
 	RegisterDate  string `json:"registerDate"`
 }
@@ -13,6 +13,8 @@ type AccountRepo interface {
 	DeleteAccountRepo(iin string) error
 	GetAccountByIINRepo(iin string) (*Account, error)
 	GetAllAccountRepo() ([]*Account, error)
+	DepositMoneyRepo(iin string, amount int64) error
+	TransferMoneyRepo(senderIIN, recipientIIN string, amount int64) error
 }
 
 type AccountUsecase interface {
@@ -20,4 +22,6 @@ type AccountUsecase interface {
 	DeleteAccount(iin string) error
 	GetAccountByIIN(iin string) (*Account, error)
 	GetAllAccount() ([]*Account, error)
+	DepositMoney(iin, balance string) error
+	TransferMoney(senderIIN, recipientIIN string, amount int64) error
 }

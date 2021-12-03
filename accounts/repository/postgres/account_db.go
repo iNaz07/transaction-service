@@ -34,6 +34,20 @@ func (ar *AccountRepo) DeleteAccountRepo(iin string) error {
 	return err
 }
 
+func (ar *AccountRepo) DepositMoneyRepo(iin string, amount int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+
+	_, err := ar.Conn.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, iin)
+	return err
+
+}
+
+func (ar *AccountRepo) TransferMoneyRepo(senderIIN, recipientIIN string, amount int64) error {
+	
+	return nil
+}
+
 func (ar *AccountRepo) GetAccountByIINRepo(iin string) (*domain.Account, error) {
 	acc := &domain.Account{}
 

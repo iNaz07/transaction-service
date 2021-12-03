@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 	"transaction-service/domain"
 	utils "transaction-service/utils"
@@ -30,6 +31,24 @@ func (au *AccountUsecase) CreateAccount(iin string) error {
 	return nil
 }
 
+func (au *AccountUsecase) DepositMoney(iin, balance string) error {
+	amount, err := strconv.Atoi(balance)
+	if err != nil {
+		return fmt.Errorf("invalid amount: %w", err)
+	}
+	if err := au.AccRepo.DepositMoneyRepo(iin, int64(amount)); err != nil {
+		return fmt.Errorf("deposit money error: %w", err)
+	}
+	return nil
+}
+
+func (au *AccountUsecase) TransferMoney(senderIIN, recipientIIN string, amount int64) error {
+	if err := au.AccRepo.TransferMoneyRepo(senderIIN, recipientIIN, amount); err != nil {
+		return fmt.Errorf("transfer money error: %w", err)
+	}
+	return nil
+}
+
 func (au *AccountUsecase) DeleteAccount(iin string) error {
 	if err := au.AccRepo.DeleteAccountRepo(iin); err != nil {
 		return fmt.Errorf("delete account error: %w", err)
@@ -44,6 +63,7 @@ func (au *AccountUsecase) GetAccountByIIN(iin string) (*domain.Account, error) {
 	}
 	return account, nil
 }
+
 func (au *AccountUsecase) GetAllAccount() ([]*domain.Account, error) {
 	all, err := au.AccRepo.GetAllAccountRepo()
 	if err != nil {

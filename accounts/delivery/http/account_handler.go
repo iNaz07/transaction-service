@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"transaction-service/domain"
 
 	"github.com/labstack/echo/v4"
@@ -17,6 +18,52 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase) {
 
 	e.GET("/account/open", handler.OpenAccPage)
 	e.POST("/account/open", handler.OpenAcc)
+	e.POST("/account/deposit", handler.DepositAcc)
+	e.GET("/account/info/:iin", handler.GetAccountInfo)
+	e.POST("/account/transfer", handler.TransferMoney)
+}
+
+func (aH *AccountHandler) TransferMoney(c echo.Context) error {
+	senderIIN := c.FormValue("iin")                    //must get from cookie
+	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	//TODO: check auth
+	acc, err := aH.AccUsecase.GetAccountByIIN(senderIIN) //check if account exists
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	if acc.Balance <= int64(amount) {
+		return c.String(http.StatusBadRequest, "not enough balance to transfer")
+	}
+	recipientIIN := c.FormValue("recipiin") //get from front
+	if _, err := aH.AccUsecase.GetAccountByIIN(recipientIIN); err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("recipient account not found: %v", err))
+	}
+	if err := aH.AccUsecase.TransferMoney(senderIIN, recipientIIN, int64(amount)); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
+	}
+	return c.String(http.StatusOK, "Money successfully transfered")
+}
+
+func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
+	iin := c.FormValue("iin") // must get iin from cookie of context
+	acc, err := aH.AccUsecase.GetAccountByIIN(iin)
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+	}
+	return c.JSON(http.StatusOK, acc)
+}
+
+func (aH *AccountHandler) DepositAcc(c echo.Context) error {
+	balance := c.FormValue("amount") //temporary
+	iin := c.FormValue("iin")        //get from cookie
+	if err := aH.AccUsecase.DepositMoney(iin, balance); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
+	}
+	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))
+
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
