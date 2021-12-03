@@ -61,7 +61,7 @@ func connectDB() *pgxpool.Pool {
 	}
 	//TODO: optimize this, should save old data
 	_, err = db.Exec(ctx, `
-	DROP TABLE users;
+	DROP TABLE accounts;
 	`)
 	if err != nil {
 		log.Fatalf("Drop table error: %v", err)
