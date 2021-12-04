@@ -31,12 +31,19 @@ func (au *AccountUsecase) CreateAccount(iin string) error {
 	return nil
 }
 
-func (au *AccountUsecase) DepositMoney(iin, balance string) error {
+func (au *AccountUsecase) DepositMoney(iin, number, balance string) error {
 	amount, err := strconv.Atoi(balance)
 	if err != nil {
 		return fmt.Errorf("invalid amount: %w", err)
 	}
-	if err := au.AccRepo.DepositMoneyRepo(iin, int64(amount)); err != nil {
+	//need to check acc number?
+	deposit := &domain.Deposit{
+		IIN:    iin,
+		Number: number,
+		Amount: int64(amount),
+		Date:   time.Now().Format("2006-01-02 15:04:05"),
+	}
+	if err := au.AccRepo.DepositMoneyRepo(deposit); err != nil {
 		return fmt.Errorf("deposit money error: %w", err)
 	}
 	return nil
@@ -44,19 +51,31 @@ func (au *AccountUsecase) DepositMoney(iin, balance string) error {
 
 func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, amount int64) error {
 	acc, err := au.AccRepo.GetAccountByNumberRepo(senderAccNum) //check if account exists
+
 	if err != nil {
 		return fmt.Errorf("sender account doesn't exist: %w", err)
 	}
 	if acc.Balance <= amount {
 		return fmt.Errorf("not enough balance to transfer")
 	}
-	if _, err := au.AccRepo.GetAccountByNumberRepo(recipientACCNum); err != nil {
+	recAcc, err := au.AccRepo.GetAccountByNumberRepo(recipientACCNum)
+	if err != nil {
 		return fmt.Errorf("recipient account doesn't exist: %w", err)
 	}
 
-	if err := au.AccRepo.TransferMoneyRepo(senderAccNum, recipientACCNum, amount); err != nil {
-		return fmt.Errorf("transfer money error: %w", err)
+	transaction := &domain.Transaction{
+		SenderIIN:           acc.IIN,
+		SenderAccountNumber: senderAccNum,
+		RecipientAccNumber:  recipientACCNum,
+		RecipientIIN:        recAcc.IIN,
+		Amount:              amount,
+		Date:                time.Now().Format("2006-01-02 15:04:05"),
 	}
+
+	if err := au.AccRepo.TransferMoneyRepo(transaction); err != nil {
+		return fmt.Errorf("transaction money error: %w", err)
+	}
+
 	return nil
 }
 

@@ -68,7 +68,8 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 	balance := c.FormValue("amount") //temporary
 	iin := c.FormValue("iin")        //get from cookie
-	if err := aH.AccUsecase.DepositMoney(iin, balance); err != nil {
+	number := c.FormValue("number")
+	if err := aH.AccUsecase.DepositMoney(iin, number, balance); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
 	}
 	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))

@@ -34,16 +34,29 @@ func (ar *AccountRepo) DeleteAccountRepo(iin string) error {
 	return err
 }
 
-func (ar *AccountRepo) DepositMoneyRepo(iin string, amount int64) error {
+func (ar *AccountRepo) DepositMoneyRepo(deposit *domain.Deposit) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
+	tx, err := ar.Conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
 
-	_, err := ar.Conn.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, iin)
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 and lasttransaction = $2 WHERE number=$3",
+		deposit.Amount, deposit.Date, deposit.Number); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+	if _, err := tx.Exec(ctx, "INSERT INTO deposits(iin, number, amount, date) VALUES ($1, $2, $3, $4)",
+		deposit.IIN, deposit.Number, deposit.Amount, deposit.Date); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
 	return err
 
 }
 
-func (ar *AccountRepo) TransferMoneyRepo(senderAccNum, recipientACCNum string, amount int64) error {
+func (ar *AccountRepo) TransferMoneyRepo(tr *domain.Transaction) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
 
@@ -52,12 +65,17 @@ func (ar *AccountRepo) TransferMoneyRepo(senderAccNum, recipientACCNum string, a
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, recipientACCNum); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 AND lasttransaction = $2 WHERE number=$3", tr.Amount, tr.Date, tr.RecipientAccNumber); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 WHERE iin = $2", amount, senderAccNum); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 AND lasttransaction = $2 WHERE number = $3", tr.Amount, tr.Date, tr.SenderAccountNumber); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+	if _, err := tx.Exec(ctx, "INSERT INTO transactions(sender, sender_number, recipient_number, recipient, amount, date) VALUES ($1, $2, $3, $4, $5, $6)",
+		tr.SenderIIN, tr.SenderAccountNumber, tr.RecipientAccNumber, tr.RecipientIIN, tr.Amount, tr.Date); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
