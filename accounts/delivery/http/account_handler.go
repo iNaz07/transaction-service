@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"transaction-service/domain"
@@ -23,27 +24,44 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase) {
 	e.POST("/account/transfer", handler.TransferMoney)
 }
 
-//TODO: check auth
-func (aH *AccountHandler) TransferMoney(c echo.Context) error {
+// unnesseccary method, should be deleted
+func (aH *AccountHandler) TransferMoneyByIIN(c echo.Context) error {
 	senderIIN := c.FormValue("iin")                    //must get from cookie
 	recipientIIN := c.FormValue("recipiin")            //get from front
 	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-
+	//TODO: need own method
 	if err := aH.AccUsecase.TransferMoney(senderIIN, recipientIIN, int64(amount)); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
 	}
 	return c.String(http.StatusOK, "Money successfully transfered")
 }
 
+//TODO: check auth
+func (aH *AccountHandler) TransferMoney(c echo.Context) error {
+	recipientACCNum := c.FormValue("recipient number") //get from front form recipient number
+	senderNumber := c.FormValue("sender number")       //get from front
+	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	if err := aH.AccUsecase.TransferMoney(senderNumber, recipientACCNum, int64(amount)); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
+	}
+	return c.JSON(http.StatusOK, "Successful transfer")
+}
+
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
-	iin := c.FormValue("iin") // must get iin from cookie of context
+	iin := c.Param("iin") // must get iin from cookie of context
+	log.Println("what is iin from auth service", iin)
 	acc, err := aH.AccUsecase.GetAccountByIIN(iin)
 	if err != nil {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
 	}
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Content-Type", "application/json")
 	return c.JSON(http.StatusOK, acc)
 }
 

@@ -43,7 +43,7 @@ func (ar *AccountRepo) DepositMoneyRepo(iin string, amount int64) error {
 
 }
 
-func (ar *AccountRepo) TransferMoneyRepo(senderIIN, recipientIIN string, amount int64) error {
+func (ar *AccountRepo) TransferMoneyRepo(senderAccNum, recipientACCNum string, amount int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
 
@@ -52,12 +52,12 @@ func (ar *AccountRepo) TransferMoneyRepo(senderIIN, recipientIIN string, amount 
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, recipientIIN); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 WHERE iin=$2", amount, recipientACCNum); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 WHERE iin = $2", amount, senderIIN); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 WHERE iin = $2", amount, senderAccNum); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
@@ -68,13 +68,36 @@ func (ar *AccountRepo) TransferMoneyRepo(senderIIN, recipientIIN string, amount 
 	return nil
 }
 
-func (ar *AccountRepo) GetAccountByIINRepo(iin string) (*domain.Account, error) {
+func (ar *AccountRepo) GetAccountByIINRepo(iin string) ([]*domain.Account, error) {
+	acc := &domain.Account{}
+	userAccount := []*domain.Account{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+
+	rows, err := ar.Conn.Query(ctx, "SELECT id, iin, balance, number, registerDate FROM accounts WHERE iin=$1", iin)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		if err := rows.Scan(&acc.ID, &acc.IIN, &acc.Balance, &acc.AccountNumber, &acc.RegisterDate); err != nil {
+			return nil, err
+		}
+		userAccount = append(userAccount, acc)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return userAccount, nil
+}
+
+func (ar *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, error) {
 	acc := &domain.Account{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
 
-	if err := ar.Conn.QueryRow(ctx, "SELECT id, iin, balance, number, registerDate FROM accounts WHERE iin=$1", iin).
+	if err := ar.Conn.QueryRow(ctx, "SELECT id, iin, balance, number, registerDate FROM accounts WHERE number = $1", number).
 		Scan(&acc.ID, &acc.IIN, &acc.Balance, &acc.AccountNumber, &acc.RegisterDate); err != nil {
 		return nil, err
 	}

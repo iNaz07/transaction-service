@@ -42,19 +42,19 @@ func (au *AccountUsecase) DepositMoney(iin, balance string) error {
 	return nil
 }
 
-func (au *AccountUsecase) TransferMoney(senderIIN, recipientIIN string, amount int64) error {
-	acc, err := au.GetAccountByIIN(senderIIN) //check if account exists
+func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, amount int64) error {
+	acc, err := au.AccRepo.GetAccountByNumberRepo(senderAccNum) //check if account exists
 	if err != nil {
 		return fmt.Errorf("sender account doesn't exist: %w", err)
 	}
 	if acc.Balance <= amount {
 		return fmt.Errorf("not enough balance to transfer")
 	}
-	if _, err := au.AccRepo.GetAccountByIINRepo(recipientIIN); err != nil {
+	if _, err := au.AccRepo.GetAccountByNumberRepo(recipientACCNum); err != nil {
 		return fmt.Errorf("recipient account doesn't exist: %w", err)
 	}
 
-	if err := au.AccRepo.TransferMoneyRepo(senderIIN, recipientIIN, amount); err != nil {
+	if err := au.AccRepo.TransferMoneyRepo(senderAccNum, recipientACCNum, amount); err != nil {
 		return fmt.Errorf("transfer money error: %w", err)
 	}
 	return nil
@@ -67,8 +67,17 @@ func (au *AccountUsecase) DeleteAccount(iin string) error {
 	return nil
 }
 
-func (au *AccountUsecase) GetAccountByIIN(iin string) (*domain.Account, error) {
+func (au *AccountUsecase) GetAccountByIIN(iin string) ([]*domain.Account, error) {
 	account, err := au.AccRepo.GetAccountByIINRepo(iin)
+	if err != nil {
+		return nil, fmt.Errorf("accounts not found: %w", err)
+	}
+	return account, nil
+}
+
+//TODO: unnessecary method, must be deleted
+func (au *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, error) {
+	account, err := au.AccRepo.GetAccountByNumberRepo(number)
 	if err != nil {
 		return nil, fmt.Errorf("account not found: %w", err)
 	}
