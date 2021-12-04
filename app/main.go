@@ -60,30 +60,44 @@ func connectDB() *pgxpool.Pool {
 		log.Fatalf("Ping db error: %v", err)
 	}
 	//TODO: optimize this, should save old data
-	_, err = db.Exec(ctx, `
-	DROP TABLE accounts;
-	`)
-	if err != nil {
+	if _, err = db.Exec(ctx, `DROP TABLE accounts;`); err != nil {
 		log.Fatalf("Drop table error: %v", err)
 	}
-	_, err = db.Exec(ctx, `
+	if _, err = db.Exec(ctx, `
 	CREATE TABLE IF NOT EXISTS accounts (
 		id SERIAL PRIMARY KEY,
         iin VARCHAR (255) NOT NULL,
 		balance BIGINT,
         number VARCHAR (255) NOT NULL,
 		registerDate VARCHAR (255) NOT NULL
-	);
-	`)
-	if err != nil {
-		log.Fatalf("Create table error: %v", err)
+	);`); err != nil {
+		log.Fatalf("Create accounts table error: %v", err)
 	}
-	// TODO: need this?
-	// _, err = db.Exec(ctx,
-	// 	`INSERT INTO users(username, password, iin, role) VALUES ($1, $2, $3, $4)`,
-	// 	"admin", "pass", "940217200216", "admin")
-	// if err != nil {
-	// 	log.Fatalf("Add admin error: %v", err)
-	// }
+
+	if _, err = db.Exec(ctx, `
+	CREATE TABLE IF NOT EXISTS transactions (
+		id SERIAL PRIMARY KEY,
+        sender VARCHAR (255) NOT NULL,
+		sender_number VARCHAR (255) NOT NULL,
+        recipient_number VARCHAR (255) NOT NULL,
+		recipient VARCHAR (255) NOT NULL,
+		amount BIGINT,
+		date VARCHAR (255) NOT NULL
+	);
+	`); err != nil {
+		log.Fatalf("Create transactions table error: %v", err)
+	}
+
+	if _, err = db.Exec(ctx, `
+	CREATE TABLE IF NOT EXISTS deposits (
+		id SERIAL PRIMARY KEY,
+        iin VARCHAR (255) NOT NULL,
+        number VARCHAR (255) NOT NULL,
+		amount BIGINT,
+		date VARCHAR (255) NOT NULL
+	);
+	`); err != nil {
+		log.Fatalf("Create deposits table error: %v", err)
+	}
 	return db
 }
