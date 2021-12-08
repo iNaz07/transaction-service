@@ -9,10 +9,10 @@ import (
 	_handler "transaction-service/accounts/delivery/http"
 	_repo "transaction-service/accounts/repository/postgres"
 	_usecase "transaction-service/accounts/usecase"
-
-	"github.com/labstack/echo/v4"
+	"transaction-service/domain"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/labstack/echo/v4"
 )
 
 //TODO: get this params from environment
@@ -28,10 +28,16 @@ func main() {
 	db := connectDB()
 	defer db.Close()
 
+	token := &domain.JwtToken{
+		AccessSecret: "",
+		AccessTtl:    30 * time.Minute,
+	}
+
 	accRepo := _repo.NewAccountRepo(db)
 	accUsecase := _usecase.NewAccountUsecase(accRepo)
+	jwtUsecase := _usecase.NewJWTUseCase(token)
 	e := echo.New()
-	_handler.NewAccountHandler(e, accUsecase)
+	_handler.NewAccountHandler(e, accUsecase, jwtUsecase)
 
 	err := e.Start("127.0.0.1:8181")
 	if err != nil && err != http.ErrServerClosed {
