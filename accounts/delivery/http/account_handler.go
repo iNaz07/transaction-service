@@ -7,21 +7,30 @@ import (
 	"strconv"
 	"transaction-service/domain"
 
+	_mid "transaction-service/accounts/delivery/http/middleware"
+
 	"github.com/labstack/echo/v4"
 )
 
 type AccountHandler struct {
-	AccUsecase domain.AccountUsecase
+	AccUsecase   domain.AccountUsecase
+	TokenUsecase domain.JwtTokenUsecase
 }
 
-func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase) {
-	handler := &AccountHandler{AccUsecase: acc}
+func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.JwtTokenUsecase) {
+	handler := &AccountHandler{AccUsecase: acc, TokenUsecase: token}
 
-	e.GET("/account/open", handler.OpenAccPage)
-	e.POST("/account/open", handler.OpenAcc)
-	e.POST("/account/deposit", handler.DepositAcc)
-	e.GET("/account/info/:iin", handler.GetAccountInfo)
-	e.POST("/account/transfer", handler.TransferMoney)
+	accGroup := e.Group("/account")
+	midd := _mid.InitAuth(token)
+	accGroup.Use(midd.GetCookie)
+
+	accGroup.GET("/open", handler.OpenAccPage)
+	accGroup.POST("/open", handler.OpenAcc)
+	accGroup.POST("/deposit", handler.DepositAcc)
+	accGroup.POST("/transfer", handler.TransferMoney)
+
+	e.GET("/info/:iin", handler.GetAccountInfo)
+	accGroup.GET("/info", handler.GetAllAccountInfo) //not need?
 }
 
 // unnesseccary method, should be deleted
@@ -53,6 +62,16 @@ func (aH *AccountHandler) TransferMoney(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Successful transfer")
 }
 
+func (aH *AccountHandler) DepositAcc(c echo.Context) error {
+	balance := c.FormValue("amount") //temporary
+	iin := c.FormValue("iin")        //get from cookie
+	number := c.FormValue("number")
+	if err := aH.AccUsecase.DepositMoney(iin, number, balance); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
+	}
+	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))
+
+}
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 	iin := c.Param("iin") // must get iin from cookie of context
 	log.Println("what is iin from auth service", iin)
@@ -65,15 +84,14 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, acc)
 }
 
-func (aH *AccountHandler) DepositAcc(c echo.Context) error {
-	balance := c.FormValue("amount") //temporary
-	iin := c.FormValue("iin")        //get from cookie
-	number := c.FormValue("number")
-	if err := aH.AccUsecase.DepositMoney(iin, number, balance); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
+func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
+	accounts, err := aH.AccUsecase.GetAllAccount()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("get all account error: %v", err))
 	}
-	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))
-
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Content-Type", "application/json")
+	return c.JSON(http.StatusOK, accounts)
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
@@ -91,6 +109,7 @@ func (aH *AccountHandler) OpenAcc(c echo.Context) error {
 }
 
 func (aH *AccountHandler) OpenAccPage(c echo.Context) error {
+	fmt.Println("meta info", c.Get("user"))
 	return c.HTML(http.StatusOK, `
 	<html>
 <head>

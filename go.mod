@@ -3,6 +3,7 @@ module transaction-service
 go 1.17
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/jackc/pgx/v4 v4.14.0
 	github.com/labstack/echo/v4 v4.6.1
 )

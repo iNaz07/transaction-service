@@ -29,7 +29,7 @@ func main() {
 	defer db.Close()
 
 	token := &domain.JwtToken{
-		AccessSecret: "",
+		AccessSecret: "super secret code",
 		AccessTtl:    30 * time.Minute,
 	}
 
