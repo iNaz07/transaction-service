@@ -4,7 +4,7 @@
     "postgres": {
         "user":"postgres",
         "password":"password",
-        "host":"localhost", 
+        "host":"postgres_db", 
         "port":5432,
         "dbname":"transaction" 
     },
