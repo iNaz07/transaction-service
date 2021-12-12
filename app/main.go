@@ -72,6 +72,7 @@ func connectDB() *pgxpool.Pool {
 	if _, err = db.Exec(ctx, `
 	CREATE TABLE IF NOT EXISTS accounts (
 		id SERIAL PRIMARY KEY,
+		userid VARCHAR (255) NOT NULL,
         iin VARCHAR (255) NOT NULL,
 		balance BIGINT,
         number VARCHAR (255) NOT NULL,

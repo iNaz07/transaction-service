@@ -34,8 +34,6 @@ func (a *Auth) GetCookie(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (a *Auth) CheckToken(c echo.Context, auth string) error {
 
-	info := make(map[int64]string)
-
 	id, err := a.JwtUsecase.ParseTokenAndGetID(auth)
 	if err != nil {
 		return fmt.Errorf("get id from token error: %w", err)
@@ -46,8 +44,27 @@ func (a *Auth) CheckToken(c echo.Context, auth string) error {
 		return fmt.Errorf("get role from token error: %w", err)
 	}
 
-	info[id] = role
+	iin, err := a.JwtUsecase.ParseTokenAndGetIIN(auth)
+	if err != nil {
+		return fmt.Errorf("get iin from token error: %w", err)
+	}
+
+	info := &domain.User{
+		ID:   int64(id),
+		IIN:  iin,
+		Role: role,
+	}
+
 	c.Set("user", info)
 
 	return nil
+}
+
+func (a *Auth) SetHeader(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+		c.Response().Header().Set("Content-Type", "application/json")
+		next(c)
+		return nil
+	}
 }

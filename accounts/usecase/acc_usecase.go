@@ -110,3 +110,11 @@ func (au *AccountUsecase) GetAllAccount() ([]*domain.Account, error) {
 	}
 	return all, nil
 }
+
+func (au *AccountUsecase) GetAccountByUserID(userID int64) (*domain.Account, error) {
+	acc, err := au.AccRepo.GetAccountByUserIDRepo(userID)
+	if err != nil {
+		return nil, fmt.Errorf("account not found: %w", err)
+	}
+	return acc, nil
+}

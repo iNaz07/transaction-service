@@ -40,6 +40,18 @@ func (j *jwtUsecase) ParseTokenAndGetRole(token string) (string, error) {
 	return role, nil
 }
 
+func (j *jwtUsecase) ParseTokenAndGetIIN(token string) (string, error) {
+	claims, err := j.ParseToken(token)
+	if err != nil {
+		return "", fmt.Errorf("invalid token: %w", err)
+	}
+	iin, ok := claims["iin"].(string)
+	if !ok {
+		return "", fmt.Errorf("iin not found from token")
+	}
+	return iin, nil
+}
+
 func (j *jwtUsecase) GetAccessTTL() time.Duration {
 	return j.token.AccessTtl
 }

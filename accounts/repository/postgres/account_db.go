@@ -146,3 +146,15 @@ func (ar *AccountRepo) GetAllAccountRepo() ([]*domain.Account, error) {
 	}
 	return allAcoount, nil
 }
+
+func (ar *AccountRepo) GetAccountByUserIDRepo(userID int64) (*domain.Account, error) {
+	acc := &domain.Account{}
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	if err := ar.Conn.QueryRow(ctx, "SELECT (id, userid, iin) FROM accounts WHERE userid = $1", userID).
+		Scan(&acc.ID, &acc.UserID, &acc.IIN); err != nil {
+		return nil, err
+	}
+	return acc, nil
+}

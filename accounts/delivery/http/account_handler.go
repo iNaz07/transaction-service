@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"transaction-service/domain"
 
 	_mid "transaction-service/accounts/delivery/http/middleware"
@@ -22,90 +21,126 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.Jwt
 
 	accGroup := e.Group("/account")
 	midd := _mid.InitAuth(token)
-	accGroup.Use(midd.GetCookie)
+	accGroup.Use(midd.GetCookie, midd.SetHeader)
 
 	accGroup.GET("/open", handler.OpenAccPage)
 	accGroup.POST("/open", handler.OpenAcc)
 	accGroup.POST("/deposit", handler.DepositAcc)
 	accGroup.POST("/transfer", handler.TransferMoney)
 
-	e.GET("/info/:iin", handler.GetAccountInfo)
+	accGroup.GET("/info/:iin", handler.GetAccountInfo)
 	accGroup.GET("/info", handler.GetAllAccountInfo) //not need?
 }
 
-// unnesseccary method, should be deleted
-func (aH *AccountHandler) TransferMoneyByIIN(c echo.Context) error {
-	senderIIN := c.FormValue("iin")                    //must get from cookie
-	recipientIIN := c.FormValue("recipiin")            //get from front
-	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	//TODO: need own method
-	if err := aH.AccUsecase.TransferMoney(senderIIN, recipientIIN, int64(amount)); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
-	}
-	return c.String(http.StatusOK, "Money successfully transfered")
-}
-
-//TODO: check auth
 func (aH *AccountHandler) TransferMoney(c echo.Context) error {
-	recipientACCNum := c.FormValue("recipient number") //get from front form recipient number
-	senderNumber := c.FormValue("sender number")       //get from front
-	amount, err := strconv.Atoi(c.FormValue("amount")) //get from front
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+	meta, ok := c.Get("user").(domain.User)
+	if !ok {
+		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
-	if err := aH.AccUsecase.TransferMoney(senderNumber, recipientACCNum, int64(amount)); err != nil {
+
+	tr := &domain.Transaction{}
+	if err := c.Bind(tr); err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("bind error: %v", err))
+	}
+	senderNumber := c.FormValue("sender number") //get from front
+	acc, err := aH.AccUsecase.GetAccountByNumber(senderNumber)
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+	}
+	if acc.UserID != meta.ID {
+		return c.String(http.StatusForbidden, "У вас недостаточно прав для данной операции")
+	}
+
+	if err := aH.AccUsecase.TransferMoney(senderNumber, tr.RecipientAccNumber, tr.Amount); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
 	}
+
 	return c.JSON(http.StatusOK, "Successful transfer")
 }
 
 func (aH *AccountHandler) DepositAcc(c echo.Context) error {
-	balance := c.FormValue("amount") //temporary
-	iin := c.FormValue("iin")        //get from cookie
-	number := c.FormValue("number")
-	if err := aH.AccUsecase.DepositMoney(iin, number, balance); err != nil {
+	meta, ok := c.Get("user").(domain.User)
+	if !ok {
+		return c.String(http.StatusBadRequest, "cannot get meta info")
+	}
+
+	dep := &domain.Deposit{}
+	if err := c.Bind(dep); err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("bind error: %v", err))
+	}
+	number := c.FormValue("sender number") //get from front
+	acc, err := aH.AccUsecase.GetAccountByNumber(number)
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+	}
+	if acc.UserID != meta.ID {
+		return c.String(http.StatusForbidden, "У вас недостаточно прав для данной операции")
+	}
+
+	balance := c.FormValue("amount") //temporary, should be dep.Amount
+
+	if err := aH.AccUsecase.DepositMoney(acc.IIN, number, balance); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
 	}
 	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))
 
 }
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
+	meta, ok := c.Get("user").(domain.User)
+	if !ok {
+		return c.String(http.StatusBadRequest, "cannot get meta info")
+	}
+	userAcc, err := aH.AccUsecase.GetAccountByUserID(meta.ID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v)", err))
+	}
+
 	iin := c.Param("iin") // must get iin from cookie of context
 	log.Println("what is iin from auth service", iin)
+	if meta.Role != "admin" {
+		if userAcc.IIN != iin {
+			return c.String(http.StatusForbidden, "У вас недостаточно прав")
+		}
+	}
 	acc, err := aH.AccUsecase.GetAccountByIIN(iin)
 	if err != nil {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
 	}
-	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-	c.Response().Header().Set("Content-Type", "application/json")
 	return c.JSON(http.StatusOK, acc)
 }
 
 func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
+	meta, ok := c.Get("user").(domain.User)
+	if !ok {
+		return c.String(http.StatusBadRequest, "cannot get meta info")
+	}
+	if meta.Role != "admin" {
+		return c.String(http.StatusForbidden, "У вас недостаточно прав")
+	}
 	accounts, err := aH.AccUsecase.GetAllAccount()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("get all account error: %v", err))
 	}
-	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-	c.Response().Header().Set("Content-Type", "application/json")
 	return c.JSON(http.StatusOK, accounts)
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
-	iin := c.FormValue("iin") //temporary
-
-	//TODO: check authorization from service-1
-	//TODO: get IIN from token
-	err := aH.AccUsecase.CreateAccount(iin)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("create account error: %v", err))
+	meta, ok := c.Get("user").(domain.User)
+	if !ok {
+		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
 
+	user := &domain.User{}
+	if err := c.Bind(user); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("bind user error: %v", err))
+	}
+	if meta.IIN != user.IIN {
+		return c.String(http.StatusBadRequest, "invalid iin")
+	}
+	if err := aH.AccUsecase.CreateAccount(meta.IIN); err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("create account error: %v", err))
+	}
 	return c.String(http.StatusOK, "Account created. Your balance: 0")
-
 }
 
 func (aH *AccountHandler) OpenAccPage(c echo.Context) error {

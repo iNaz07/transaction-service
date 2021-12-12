@@ -2,6 +2,7 @@ package domain
 
 type Account struct {
 	ID              int64  `json:"id"`
+	UserID          int64  `json:"userid"`
 	IIN             string `json:"iin"`
 	AccountNumber   string `json:"number"`
 	Balance         int64  `json:"balance"`
@@ -17,6 +18,7 @@ type AccountRepo interface {
 	GetAllAccountRepo() ([]*Account, error)
 	DepositMoneyRepo(deposit *Deposit) error
 	TransferMoneyRepo(tr *Transaction) error
+	GetAccountByUserIDRepo(userID int64) (*Account, error)
 }
 
 type AccountUsecase interface {
@@ -27,4 +29,5 @@ type AccountUsecase interface {
 	GetAllAccount() ([]*Account, error)
 	DepositMoney(iin, number, balance string) error
 	TransferMoney(senderIIN, recipientIIN string, amount int64) error
+	GetAccountByUserID(userID int64) (*Account, error)
 }
