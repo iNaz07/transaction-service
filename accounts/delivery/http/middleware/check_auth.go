@@ -56,6 +56,7 @@ func (a *Auth) CheckToken(c echo.Context, auth string) error {
 	}
 
 	c.Set("user", info)
+	fmt.Println("from context", c.Get("user"))
 
 	return nil
 }

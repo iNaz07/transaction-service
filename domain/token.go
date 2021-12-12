@@ -19,6 +19,5 @@ type JwtTokenUsecase interface {
 	ParseTokenAndGetID(token string) (int64, error)
 	ParseTokenAndGetRole(token string) (string, error)
 	ParseTokenAndGetIIN(token string) (string, error)
-	// JWTErrorChecker(err error, c echo.Context) error
 	GetAccessTTL() time.Duration
 }

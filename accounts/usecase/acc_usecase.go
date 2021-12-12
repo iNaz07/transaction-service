@@ -17,11 +17,12 @@ func NewAccountUsecase(repo domain.AccountRepo) domain.AccountUsecase {
 }
 
 //TODO: check generate number
-func (au *AccountUsecase) CreateAccount(iin string) error {
+func (au *AccountUsecase) CreateAccount(iin string, userid int64) error {
 	acc := &domain.Account{
 		IIN:           iin,
-		RegisterDate:  time.Now().Format("2006-01-02 15:04:05"),
+		UserID:        userid,
 		Balance:       0,
+		RegisterDate:  time.Now().Format("2006-01-02 15:04:05"),
 		AccountNumber: utils.GenerateNumber(),
 	}
 
@@ -86,7 +87,7 @@ func (au *AccountUsecase) DeleteAccount(iin string) error {
 	return nil
 }
 
-func (au *AccountUsecase) GetAccountByIIN(iin string) ([]*domain.Account, error) {
+func (au *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) {
 	account, err := au.AccRepo.GetAccountByIINRepo(iin)
 	if err != nil {
 		return nil, fmt.Errorf("accounts not found: %w", err)
@@ -103,7 +104,7 @@ func (au *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, er
 	return account, nil
 }
 
-func (au *AccountUsecase) GetAllAccount() ([]*domain.Account, error) {
+func (au *AccountUsecase) GetAllAccount() ([]domain.Account, error) {
 	all, err := au.AccRepo.GetAllAccountRepo()
 	if err != nil {
 		return nil, fmt.Errorf("get all account err: %w", err)

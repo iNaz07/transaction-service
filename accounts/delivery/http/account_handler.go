@@ -33,7 +33,7 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.Jwt
 }
 
 func (aH *AccountHandler) TransferMoney(c echo.Context) error {
-	meta, ok := c.Get("user").(domain.User)
+	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
 		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
@@ -59,7 +59,7 @@ func (aH *AccountHandler) TransferMoney(c echo.Context) error {
 }
 
 func (aH *AccountHandler) DepositAcc(c echo.Context) error {
-	meta, ok := c.Get("user").(domain.User)
+	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
 		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
@@ -86,7 +86,7 @@ func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 
 }
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
-	meta, ok := c.Get("user").(domain.User)
+	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
 		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
@@ -110,7 +110,7 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 }
 
 func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
-	meta, ok := c.Get("user").(domain.User)
+	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
 		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
@@ -125,7 +125,7 @@ func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
-	meta, ok := c.Get("user").(domain.User)
+	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
 		return c.String(http.StatusBadRequest, "cannot get meta info")
 	}
@@ -134,10 +134,11 @@ func (aH *AccountHandler) OpenAcc(c echo.Context) error {
 	if err := c.Bind(user); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("bind user error: %v", err))
 	}
+	fmt.Println("are you here", meta, user)
 	if meta.IIN != user.IIN {
 		return c.String(http.StatusBadRequest, "invalid iin")
 	}
-	if err := aH.AccUsecase.CreateAccount(meta.IIN); err != nil {
+	if err := aH.AccUsecase.CreateAccount(meta.IIN, meta.ID); err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("create account error: %v", err))
 	}
 	return c.String(http.StatusOK, "Account created. Your balance: 0")

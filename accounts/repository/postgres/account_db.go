@@ -19,8 +19,8 @@ func NewAccountRepo(conn *pgxpool.Pool) domain.AccountRepo {
 func (ar *AccountRepo) CreateAccountRepo(acc *domain.Account) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
-	if _, err := ar.Conn.Exec(ctx, "INSERT INTO accounts(iin, balance, number, registerDate) VALUES ($1, $2, $3, $4)",
-		acc.IIN, acc.Balance, acc.AccountNumber, acc.RegisterDate); err != nil {
+	if _, err := ar.Conn.Exec(ctx, "INSERT INTO accounts(iin, userid, number, registerDate, balance) VALUES ($1, $2, $3, $4, $5)",
+		acc.IIN, acc.UserID, acc.AccountNumber, acc.RegisterDate, acc.Balance); err != nil {
 		return err
 	}
 	return nil
@@ -86,9 +86,9 @@ func (ar *AccountRepo) TransferMoneyRepo(tr *domain.Transaction) error {
 	return nil
 }
 
-func (ar *AccountRepo) GetAccountByIINRepo(iin string) ([]*domain.Account, error) {
-	acc := &domain.Account{}
-	userAccount := []*domain.Account{}
+func (ar *AccountRepo) GetAccountByIINRepo(iin string) ([]domain.Account, error) {
+	acc := domain.Account{}
+	userAccount := []domain.Account{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
@@ -97,6 +97,7 @@ func (ar *AccountRepo) GetAccountByIINRepo(iin string) ([]*domain.Account, error
 	if err != nil {
 		return nil, err
 	}
+
 	for rows.Next() {
 		if err := rows.Scan(&acc.ID, &acc.IIN, &acc.Balance, &acc.AccountNumber, &acc.RegisterDate); err != nil {
 			return nil, err
@@ -122,9 +123,9 @@ func (ar *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, e
 	return acc, nil
 }
 
-func (ar *AccountRepo) GetAllAccountRepo() ([]*domain.Account, error) {
-	account := &domain.Account{}
-	allAcoount := []*domain.Account{}
+func (ar *AccountRepo) GetAllAccountRepo() ([]domain.Account, error) {
+	account := domain.Account{}
+	allAcoount := []domain.Account{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
@@ -152,7 +153,7 @@ func (ar *AccountRepo) GetAccountByUserIDRepo(userID int64) (*domain.Account, er
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
-	if err := ar.Conn.QueryRow(ctx, "SELECT (id, userid, iin) FROM accounts WHERE userid = $1", userID).
+	if err := ar.Conn.QueryRow(ctx, "SELECT id, userid, iin FROM accounts WHERE userid = $1", userID).
 		Scan(&acc.ID, &acc.UserID, &acc.IIN); err != nil {
 		return nil, err
 	}

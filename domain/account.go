@@ -13,20 +13,20 @@ type Account struct {
 type AccountRepo interface {
 	CreateAccountRepo(acc *Account) error
 	DeleteAccountRepo(iin string) error
-	GetAccountByIINRepo(iin string) ([]*Account, error)
+	GetAccountByIINRepo(iin string) ([]Account, error)
 	GetAccountByNumberRepo(number string) (*Account, error)
-	GetAllAccountRepo() ([]*Account, error)
+	GetAllAccountRepo() ([]Account, error)
 	DepositMoneyRepo(deposit *Deposit) error
 	TransferMoneyRepo(tr *Transaction) error
 	GetAccountByUserIDRepo(userID int64) (*Account, error)
 }
 
 type AccountUsecase interface {
-	CreateAccount(iin string) error
+	CreateAccount(iin string, userID int64) error
 	DeleteAccount(iin string) error
-	GetAccountByIIN(iin string) ([]*Account, error)
+	GetAccountByIIN(iin string) ([]Account, error)
 	GetAccountByNumber(number string) (*Account, error)
-	GetAllAccount() ([]*Account, error)
+	GetAllAccount() ([]Account, error)
 	DepositMoney(iin, number, balance string) error
 	TransferMoney(senderIIN, recipientIIN string, amount int64) error
 	GetAccountByUserID(userID int64) (*Account, error)
