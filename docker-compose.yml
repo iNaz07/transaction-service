@@ -1,32 +1,8 @@
 version: '3.1'
 
 services:
-  postgres_db:
-    image: postgres:latest
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      retries: 5
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=transaction
-    # volumes:
-    #   - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - '5432:5432'
-    networks:
-      - app
   web:
     build: .
-    depends_on:
-      postgres_db:
-        condition: service_healthy
+    image: transaction-service-web
     ports:
       - '8181:8181'
-    networks:
-      - app
-
-networks:
-  app:
-   

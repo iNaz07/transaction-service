@@ -1,10 +1,10 @@
 {
-    "addr": "localhost:8181",     
+    "addr": ":8181",     
     
     "postgres": {
         "user":"postgres",
         "password":"password",
-        "host":"postgres_db", 
+        "host":"", 
         "port":5432,
         "dbname":"transaction" 
     },

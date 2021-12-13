@@ -75,9 +75,9 @@ func connectDB() *pgxpool.Pool {
 
 	//Move all to init.sql
 	//TODO: optimize this, should save old data
-	if _, err = db.Exec(ctx, `DROP TABLE accounts;`); err != nil {
-		log.Fatalf("Drop table error: %v", err)
-	}
+	// if _, err = db.Exec(ctx, `DROP TABLE accounts;`); err != nil {
+	// 	log.Fatalf("Drop table error: %v", err)
+	// }
 
 	if _, err = db.Exec(ctx, `
 	CREATE TABLE IF NOT EXISTS accounts (
