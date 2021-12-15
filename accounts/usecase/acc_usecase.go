@@ -50,13 +50,18 @@ func (au *AccountUsecase) DepositMoney(iin, number, balance string) error {
 	return nil
 }
 
-func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, amount int64) error {
+func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, amount string) error {
+	money, err := strconv.Atoi(amount)
+	if err != nil {
+		return fmt.Errorf("invalid amount: %w", err)
+	}
+
 	acc, err := au.AccRepo.GetAccountByNumberRepo(senderAccNum) //check if account exists
 
 	if err != nil {
 		return fmt.Errorf("sender account doesn't exist: %w", err)
 	}
-	if acc.Balance <= amount {
+	if acc.Balance <= int64(money) {
 		return fmt.Errorf("not enough balance to transfer")
 	}
 	recAcc, err := au.AccRepo.GetAccountByNumberRepo(recipientACCNum)
@@ -69,7 +74,7 @@ func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, am
 		SenderAccountNumber: senderAccNum,
 		RecipientAccNumber:  recipientACCNum,
 		RecipientIIN:        recAcc.IIN,
-		Amount:              amount,
+		Amount:              int64(money),
 		Date:                time.Now().Format("2006-01-02 15:04:05"),
 	}
 

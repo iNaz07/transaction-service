@@ -28,6 +28,6 @@ type AccountUsecase interface {
 	GetAccountByNumber(number string) (*Account, error)
 	GetAllAccount() ([]Account, error)
 	DepositMoney(iin, number, balance string) error
-	TransferMoney(senderIIN, recipientIIN string, amount int64) error
+	TransferMoney(senderIIN, recipientIIN, amount string) error
 	GetAccountByUserID(userID int64) (*Account, error)
 }

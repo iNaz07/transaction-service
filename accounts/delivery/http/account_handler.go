@@ -2,6 +2,8 @@ package http
 
 import (
 	"fmt"
+	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"transaction-service/domain"
@@ -16,103 +18,148 @@ type AccountHandler struct {
 	TokenUsecase domain.JwtTokenUsecase
 }
 
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
 func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.JwtTokenUsecase) {
+	t := &Template{
+		templates: template.Must(template.ParseGlob("../templates/*.html")),
+	}
+	e.Renderer = t
 	handler := &AccountHandler{AccUsecase: acc, TokenUsecase: token}
 
 	accGroup := e.Group("/account")
 	midd := _mid.InitAuth(token)
 	accGroup.Use(midd.GetCookie, midd.SetHeader)
-
+	accGroup.GET("/", handler.HomePage)
 	accGroup.GET("/open", handler.OpenAccPage)
+	accGroup.GET("/deposit/:number", handler.DepositPage)
+	accGroup.GET("/transfer/:number", handler.TransferPage)
+
 	accGroup.POST("/open", handler.OpenAcc)
-	accGroup.POST("/deposit", handler.DepositAcc)
-	accGroup.POST("/transfer", handler.TransferMoney)
+	accGroup.POST("/deposit/:number", handler.DepositAcc)
+	accGroup.POST("/transfer/:number", handler.TransferMoney)
 
 	accGroup.GET("/info/:iin", handler.GetAccountInfo)
 	accGroup.GET("/info", handler.GetAllAccountInfo) //not need?
 }
 
+func (aH *AccountHandler) HomePage(c echo.Context) error {
+	meta, ok := c.Get("user").(*domain.User)
+	if !ok {
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
+	}
+	return c.Render(http.StatusOK, "home.html", meta)
+}
+
+func (aH *AccountHandler) TransferPage(c echo.Context) error {
+	number := c.Param("number")
+	return c.Render(http.StatusOK, "transfer.html", number)
+}
+
+func (aH *AccountHandler) DepositPage(c echo.Context) error {
+	number := c.Param("number")
+	return c.Render(http.StatusOK, "deposit.html", number)
+}
+
 func (aH *AccountHandler) TransferMoney(c echo.Context) error {
 	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
-		return c.String(http.StatusBadRequest, "cannot get meta info")
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
 
-	tr := &domain.Transaction{}
-	if err := c.Bind(tr); err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("bind error: %v", err))
-	}
-	senderNumber := c.FormValue("sender number") //get from front
+	senderNumber := c.Param("number")
+	recipientNumber := c.FormValue("recipient")
+	amount := c.FormValue("amount")
+
 	acc, err := aH.AccUsecase.GetAccountByNumber(senderNumber)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+		log.Printf("account not found: %v", err)
+		return c.Render(http.StatusBadRequest, "notify.html", "unavailable account")
 	}
 	if acc.UserID != meta.ID {
-		return c.String(http.StatusForbidden, "У вас недостаточно прав для данной операции")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied to proceed")
 	}
 
-	if err := aH.AccUsecase.TransferMoney(senderNumber, tr.RecipientAccNumber, tr.Amount); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("transfer money error: %v", err))
+	if err := aH.AccUsecase.TransferMoney(senderNumber, recipientNumber, amount); err != nil {
+		log.Printf("transfer money error: %v", err)
+		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured. Please try again")
 	}
 
-	return c.JSON(http.StatusOK, "Successful transfer")
+	return c.Render(http.StatusOK, "notify.html", fmt.Sprintf("%v KZT successfully transfered to account %v", amount, recipientNumber))
 }
 
 func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
-		return c.String(http.StatusBadRequest, "cannot get meta info")
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
 
-	dep := &domain.Deposit{}
-	if err := c.Bind(dep); err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("bind error: %v", err))
+	number := c.Param("number")
+	if number == "" {
+		log.Printf("sender number is empty")
+		return c.Render(http.StatusBadRequest, "notify.html", "provide sender number")
 	}
-	number := c.FormValue("sender number") //get from front
+
 	acc, err := aH.AccUsecase.GetAccountByNumber(number)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+		log.Printf("account not found: %v", err)
+		return c.Render(http.StatusBadRequest, "notify.html", "unavailable account")
 	}
 	if acc.UserID != meta.ID {
-		return c.String(http.StatusForbidden, "У вас недостаточно прав для данной операции")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied to proceed")
 	}
 
-	balance := c.FormValue("amount") //temporary, should be dep.Amount
+	balance := c.FormValue("amount")
 
 	if err := aH.AccUsecase.DepositMoney(acc.IIN, number, balance); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("deposit account error: %v", err))
+		log.Printf("deposit account error: %v", err)
+		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured, Please try again")
 	}
-	return c.String(http.StatusOK, fmt.Sprintf("%v deposited into your account", balance))
+	return c.Render(http.StatusOK, "notify.html", fmt.Sprintf("Account %v topped up amount: %v", number, balance))
 
 }
+
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
-		return c.String(http.StatusBadRequest, "cannot get meta info")
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
 	userAcc, err := aH.AccUsecase.GetAccountByUserID(meta.ID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v)", err))
+		log.Printf("account not found: %v)", err)
+		return c.Render(http.StatusNotFound, "notify.html", "No available accounts to proceed")
 	}
 
-	iin := c.Param("iin") // must get iin from cookie of context
+	iin := c.Param("iin")
 	log.Println("what is iin from auth service", iin)
 	if meta.Role != "admin" {
 		if userAcc.IIN != iin {
-			return c.String(http.StatusForbidden, "У вас недостаточно прав")
+			return c.String(http.StatusForbidden, "Access denied")
 		}
 	}
 	acc, err := aH.AccUsecase.GetAccountByIIN(iin)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("account not found: %v", err))
+		log.Printf("account not found: %v", err)
+		return c.Render(http.StatusNotFound, "notify.html", "No available accounts to proceed")
 	}
-	return c.JSON(http.StatusOK, acc)
+	return c.Render(http.StatusOK, "info.html", acc)
 }
 
 func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
 	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
-		return c.String(http.StatusBadRequest, "cannot get meta info")
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
 	if meta.Role != "admin" {
 		return c.String(http.StatusForbidden, "У вас недостаточно прав")
@@ -127,36 +174,27 @@ func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
 	meta, ok := c.Get("user").(*domain.User)
 	if !ok {
-		return c.String(http.StatusBadRequest, "cannot get meta info")
+		log.Printf("cannot get meta info")
+		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
 
-	user := &domain.User{}
-	if err := c.Bind(user); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("bind user error: %v", err))
+	user := &domain.User{
+		IIN: c.FormValue("iin"),
 	}
+
 	fmt.Println("are you here", meta, user)
 	if meta.IIN != user.IIN {
 		return c.String(http.StatusBadRequest, "invalid iin")
 	}
 	if err := aH.AccUsecase.CreateAccount(meta.IIN, meta.ID); err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("create account error: %v", err))
+		log.Printf("create account error: %v", err)
+		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured. Please try again")
 	}
-	return c.String(http.StatusOK, "Account created. Your balance: 0")
+	log.Printf("Account created. Your balance: 0") //log
+	return c.Render(http.StatusOK, "notify.html", "Account created. Your balance: 0")
 }
 
 func (aH *AccountHandler) OpenAccPage(c echo.Context) error {
 	fmt.Println("meta info", c.Get("user"))
-	return c.HTML(http.StatusOK, `
-	<html>
-<head>
-</head>
-<body>
-<form action="/create account" method="post">
-	<label for="iin">Please enter your IIN:</label> <br>
-	<input type="text" id="iin" name="iin"> <br>
-	<input type="submit" value="Create an account">
-</form>
-</body>
-</html>
-	`)
+	return c.Render(http.StatusOK, "open.html", nil)
 }

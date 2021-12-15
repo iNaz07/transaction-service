@@ -42,7 +42,7 @@ func (ar *AccountRepo) DepositMoneyRepo(deposit *domain.Deposit) error {
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 and lasttransaction = $2 WHERE number=$3",
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1, lasttransaction = $2 WHERE number=$3",
 		deposit.Amount, deposit.Date, deposit.Number); err != nil {
 		tx.Rollback(ctx)
 		return err
@@ -65,12 +65,12 @@ func (ar *AccountRepo) TransferMoneyRepo(tr *domain.Transaction) error {
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1 AND lasttransaction = $2 WHERE number=$3", tr.Amount, tr.Date, tr.RecipientAccNumber); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1, lasttransaction = $2 WHERE number=$3", tr.Amount, tr.Date, tr.RecipientAccNumber); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1 AND lasttransaction = $2 WHERE number = $3", tr.Amount, tr.Date, tr.SenderAccountNumber); err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance-$1, lasttransaction = $2 WHERE number = $3", tr.Amount, tr.Date, tr.SenderAccountNumber); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
@@ -116,8 +116,8 @@ func (ar *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, e
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
 
-	if err := ar.Conn.QueryRow(ctx, "SELECT id, iin, balance, number, registerDate FROM accounts WHERE number = $1", number).
-		Scan(&acc.ID, &acc.IIN, &acc.Balance, &acc.AccountNumber, &acc.RegisterDate); err != nil {
+	if err := ar.Conn.QueryRow(ctx, "SELECT id, userid, iin, balance, number, registerDate FROM accounts WHERE number = $1", number).
+		Scan(&acc.ID, &acc.UserID, &acc.IIN, &acc.Balance, &acc.AccountNumber, &acc.RegisterDate); err != nil {
 		return nil, err
 	}
 	return acc, nil

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <h2> Available accounts</h2>
+    <h4>Choose an account to proceed</h4>
+    {{ range . }}
+
+    <p>Holder IIN: {{ .IIN }} </p>
+    <p>Account Number: {{ .AccountNumber }} </p>
+    <p>Available amount: {{ .Balance }} </p>
+    <p>Registration date: {{ .RegisterDate }} </p>
+    <p>Last Transaction Date: {{ .LastTransaction }} </p>
+    <a href="/account/deposit/{{.AccountNumber}}">Top up money</a>
+    <a href="/account/transfer/{{.AccountNumber}}">Transfer money</a>{{end }}
+</body>
+
+</html>

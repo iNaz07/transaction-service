@@ -64,7 +64,7 @@ func (a *Auth) CheckToken(c echo.Context, auth string) error {
 func (a *Auth) SetHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-		c.Response().Header().Set("Content-Type", "application/json")
+		c.Response().Header().Set("Content-Type", "text/html")
 		next(c)
 		return nil
 	}

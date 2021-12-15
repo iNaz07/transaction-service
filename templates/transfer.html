@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer</title>
+</head>
+
+<body>
+    <div class="transfer-container">
+        <a href="/account/">back</a>
+        <section class="transfer" id="transfer">
+            <header>
+                <h2>Transfer money</h2>
+            </header>
+            <form class="transfer-form" action="/account/transfer/{{.}}" method="post">
+                <input type="text" class="transfer-recipient" name="recipient" placeholder="recipient" required autofocus/><br>
+                <input type="text" class="recipient-input" name="amount" placeholder="Amount" required autofocus/><br>
+
+                <div class="submit-container">
+                    <button type="submit" class="transfer-button">Send money</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
+
+</html>
