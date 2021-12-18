@@ -26,14 +26,6 @@ func (ar *AccountRepo) CreateAccountRepo(acc *domain.Account) error {
 	return nil
 }
 
-func (ar *AccountRepo) DeleteAccountRepo(iin string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
-	defer cancel()
-
-	_, err := ar.Conn.Exec(ctx, "DELETE FROM accounts WHERE iin=$1", iin)
-	return err
-}
-
 func (ar *AccountRepo) DepositMoneyRepo(deposit *domain.Deposit) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()

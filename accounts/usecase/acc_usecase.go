@@ -85,13 +85,6 @@ func (au *AccountUsecase) TransferMoney(senderAccNum, recipientACCNum string, am
 	return nil
 }
 
-func (au *AccountUsecase) DeleteAccount(iin string) error {
-	if err := au.AccRepo.DeleteAccountRepo(iin); err != nil {
-		return fmt.Errorf("delete account error: %w", err)
-	}
-	return nil
-}
-
 func (au *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) {
 	account, err := au.AccRepo.GetAccountByIINRepo(iin)
 	if err != nil {
@@ -100,7 +93,6 @@ func (au *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) 
 	return account, nil
 }
 
-//TODO: unnessecary method, must be deleted
 func (au *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, error) {
 	account, err := au.AccRepo.GetAccountByNumberRepo(number)
 	if err != nil {

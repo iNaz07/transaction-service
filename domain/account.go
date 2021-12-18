@@ -12,7 +12,6 @@ type Account struct {
 
 type AccountRepo interface {
 	CreateAccountRepo(acc *Account) error
-	DeleteAccountRepo(iin string) error
 	GetAccountByIINRepo(iin string) ([]Account, error)
 	GetAccountByNumberRepo(number string) (*Account, error)
 	GetAllAccountRepo() ([]Account, error)
@@ -23,7 +22,6 @@ type AccountRepo interface {
 
 type AccountUsecase interface {
 	CreateAccount(iin string, userID int64) error
-	DeleteAccount(iin string) error
 	GetAccountByIIN(iin string) ([]Account, error)
 	GetAccountByNumber(number string) (*Account, error)
 	GetAllAccount() ([]Account, error)
