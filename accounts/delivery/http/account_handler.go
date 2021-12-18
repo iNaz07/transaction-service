@@ -28,7 +28,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.JwtTokenUsecase) {
 	t := &Template{
-		templates: template.Must(template.ParseGlob("../templates/*.html")),
+		templates: template.Must(template.ParseGlob("templates/*.html")),
 	}
 	e.Renderer = t
 	handler := &AccountHandler{AccUsecase: acc, TokenUsecase: token}
@@ -55,6 +55,7 @@ func (aH *AccountHandler) HomePage(c echo.Context) error {
 		log.Printf("cannot get meta info")
 		return c.Render(http.StatusForbidden, "notify.html", "Access denied. Please authorize")
 	}
+	// return c.String(http.StatusOK, meta.IIN)
 	return c.Render(http.StatusOK, "home.html", meta)
 }
 
@@ -92,7 +93,7 @@ func (aH *AccountHandler) TransferMoney(c echo.Context) error {
 		log.Printf("transfer money error: %v", err)
 		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured. Please try again")
 	}
-
+	// return c.String(http.StatusOK, fmt.Sprintf("%v KZT successfully transfered to account %v", amount, recipientNumber))
 	return c.Render(http.StatusOK, "notify.html", fmt.Sprintf("%v KZT successfully transfered to account %v", amount, recipientNumber))
 }
 
@@ -115,6 +116,7 @@ func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "notify.html", "unavailable account")
 	}
 	if acc.UserID != meta.ID {
+
 		return c.Render(http.StatusForbidden, "notify.html", "Access denied to proceed")
 	}
 
@@ -124,8 +126,8 @@ func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 		log.Printf("deposit account error: %v", err)
 		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured, Please try again")
 	}
+	// return c.String(http.StatusOK, fmt.Sprintf("Account %v topped up amount: %v", number, balance))
 	return c.Render(http.StatusOK, "notify.html", fmt.Sprintf("Account %v topped up amount: %v", number, balance))
-
 }
 
 func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
@@ -152,6 +154,7 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 		log.Printf("account not found: %v", err)
 		return c.Render(http.StatusNotFound, "notify.html", "No available accounts to proceed")
 	}
+	// return c.JSON(http.StatusOK, acc)
 	return c.Render(http.StatusOK, "info.html", acc)
 }
 
@@ -191,6 +194,7 @@ func (aH *AccountHandler) OpenAcc(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "notify.html", "Unexpected error occured. Please try again")
 	}
 	log.Printf("Account created. Your balance: 0") //log
+	// return c.String(http.StatusOK, "Account created. Your balance: 0")
 	return c.Render(http.StatusOK, "notify.html", "Account created. Your balance: 0")
 }
 

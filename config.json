@@ -1,16 +1,16 @@
 {
-    "addr": ":8181",     
-    
+    "addr": ":8181",
+
     "postgres": {
-        "user":"postgres",
-        "password":"password",
-        "host":"", 
-        "port":5432,
-        "dbname":"transaction" 
+        "user": "postgres",
+        "password": "password",
+        "host": "db",
+        "port": 5432,
+        "dbname": "transaction"
     },
 
     "token": {
         "secret": "super secret code",
-        "ttl":    30
-    }   
+        "ttl": 30
+    }
 }
