@@ -180,3 +180,37 @@ func TestGetAccountInfo(t *testing.T) {
 
 	mockUCase.AssertExpectations(t)
 }
+
+func TestGetAllAccountInfo(t *testing.T) {
+	var mockAllAcc []domain.Account
+err := faker.FakeData(&mockAllAcc)
+assert.NoError(t, err)
+
+admin := &domain.User{
+	ID: 25,
+	IIN: "6416354",
+	Role: "admin",	
+}
+
+mockUcase := new(mocks.AccountUsecase)
+mockUcase.On("GetAllAccount").Return(mockAllAcc, nil)
+
+e := echo.New()
+req, err := http.NewRequest(echo.GET, "/account/info", strings.NewReader(""))
+assert.NoError(t, err)
+
+rec := httptest.NewRecorder()
+
+c := e.NewContext(req, rec)
+c.SetPath("/account/info")
+c.Set("user", admin)
+
+handler := accHTTP.AccountHandler{
+	AccUsecase: mockUcase,
+}
+
+err = handler.GetAllAccountInfo(c)
+require.NoError(t, err)
+
+mockUcase.AssertExpectations(t)
+}

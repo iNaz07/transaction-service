@@ -171,7 +171,9 @@ func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("get all account error: %v", err))
 	}
-	return c.JSON(http.StatusOK, accounts)
+	// return c.JSON(http.StatusOK, accounts)
+	return c.Render(http.StatusOK, "info.html", accounts)
+
 }
 
 func (aH *AccountHandler) OpenAcc(c echo.Context) error {
