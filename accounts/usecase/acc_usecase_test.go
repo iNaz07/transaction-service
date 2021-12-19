@@ -14,7 +14,6 @@ import (
 	ucase "transaction-service/accounts/usecase"
 	"transaction-service/domain"
 	"transaction-service/domain/mocks"
-	// utils "transaction-service/utils"
 )
 
 func TestCreateAccount(t *testing.T) {

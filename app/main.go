@@ -29,12 +29,12 @@ func main() {
 		AccessSecret: viper.GetString(`token.secret`),
 		AccessTtl:    viper.GetDuration(`token.ttl`) * time.Minute,
 	}
-
+	timeout := viper.GetDuration(`timeout`) * time.Second
 	db := connectDB()
 	defer db.Close()
 
 	accRepo := _repo.NewAccountRepo(db)
-	accUsecase := _usecase.NewAccountUsecase(accRepo)
+	accUsecase := _usecase.NewAccountUsecase(accRepo, timeout)
 	jwtUsecase := _usecase.NewJWTUseCase(token)
 
 	e := echo.New()

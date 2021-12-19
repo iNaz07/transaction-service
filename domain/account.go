@@ -1,5 +1,9 @@
 package domain
 
+import (
+	"context"
+)
+
 type Account struct {
 	ID              int64  `json:"id"`
 	UserID          int64  `json:"userid"`
@@ -11,21 +15,21 @@ type Account struct {
 }
 
 type AccountRepo interface {
-	CreateAccountRepo(acc *Account) error
-	GetAccountByIINRepo(iin string) ([]Account, error)
-	GetAccountByNumberRepo(number string) (*Account, error)
-	GetAllAccountRepo() ([]Account, error)
-	DepositMoneyRepo(deposit *Deposit) error
-	TransferMoneyRepo(tr *Transaction) error
-	GetAccountByUserIDRepo(userID int64) (*Account, error)
+	CreateAccountRepo(ctx context.Context, acc *Account) error
+	GetAccountByIINRepo(ctx context.Context, iin string) ([]Account, error)
+	GetAccountByNumberRepo(ctx context.Context, number string) (*Account, error)
+	GetAllAccountRepo(ctx context.Context) ([]Account, error)
+	DepositMoneyRepo(ctx context.Context, deposit *Deposit) error
+	TransferMoneyRepo(ctx context.Context, tr *Transaction) error
+	GetAccountByUserIDRepo(ctx context.Context, userID int64) (*Account, error)
 }
 
 type AccountUsecase interface {
-	CreateAccount(iin string, userID int64) error
-	GetAccountByIIN(iin string) ([]Account, error)
-	GetAccountByNumber(number string) (*Account, error)
-	GetAllAccount() ([]Account, error)
-	DepositMoney(iin, number, balance string) error
-	TransferMoney(senderIIN, recipientIIN, amount string) error
-	GetAccountByUserID(userID int64) (*Account, error)
+	CreateAccount(ctx context.Context, iin string, userID int64) error
+	GetAccountByIIN(ctx context.Context, iin string) ([]Account, error)
+	GetAccountByNumber(ctx context.Context, number string) (*Account, error)
+	GetAllAccount(ctx context.Context) ([]Account, error)
+	DepositMoney(ctx context.Context, iin, number, balance string) error
+	TransferMoney(ctx context.Context, senderAccNum, recipientACCNum, amount string) error
+	GetAccountByUserID(ctx context.Context, userID int64) (*Account, error)
 }
