@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	domain "transaction-service/domain"
 
 	mock "github.com/stretchr/testify/mock"
@@ -13,13 +14,13 @@ type AccountUsecase struct {
 	mock.Mock
 }
 
-// CreateAccount provides a mock function with given fields: iin, userID
-func (_m *AccountUsecase) CreateAccount(iin string, userID int64) error {
-	ret := _m.Called(iin, userID)
+// CreateAccount provides a mock function with given fields: ctx, iin, userID
+func (_m *AccountUsecase) CreateAccount(ctx context.Context, iin string, userID int64) error {
+	ret := _m.Called(ctx, iin, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(iin, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64) error); ok {
+		r0 = rf(ctx, iin, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -27,13 +28,13 @@ func (_m *AccountUsecase) CreateAccount(iin string, userID int64) error {
 	return r0
 }
 
-// DeleteAccount provides a mock function with given fields: iin
-func (_m *AccountUsecase) DeleteAccount(iin string) error {
-	ret := _m.Called(iin)
+// DepositMoney provides a mock function with given fields: ctx, iin, number, balance
+func (_m *AccountUsecase) DepositMoney(ctx context.Context, iin string, number string, balance string) error {
+	ret := _m.Called(ctx, iin, number, balance)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(iin)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, iin, number, balance)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,27 +42,13 @@ func (_m *AccountUsecase) DeleteAccount(iin string) error {
 	return r0
 }
 
-// DepositMoney provides a mock function with given fields: iin, number, balance
-func (_m *AccountUsecase) DepositMoney(iin string, number string, balance string) error {
-	ret := _m.Called(iin, number, balance)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(iin, number, balance)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GetAccountByIIN provides a mock function with given fields: iin
-func (_m *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) {
-	ret := _m.Called(iin)
+// GetAccountByIIN provides a mock function with given fields: ctx, iin
+func (_m *AccountUsecase) GetAccountByIIN(ctx context.Context, iin string) ([]domain.Account, error) {
+	ret := _m.Called(ctx, iin)
 
 	var r0 []domain.Account
-	if rf, ok := ret.Get(0).(func(string) []domain.Account); ok {
-		r0 = rf(iin)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []domain.Account); ok {
+		r0 = rf(ctx, iin)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Account)
@@ -69,8 +56,8 @@ func (_m *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(iin)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, iin)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -78,13 +65,13 @@ func (_m *AccountUsecase) GetAccountByIIN(iin string) ([]domain.Account, error) 
 	return r0, r1
 }
 
-// GetAccountByNumber provides a mock function with given fields: number
-func (_m *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, error) {
-	ret := _m.Called(number)
+// GetAccountByNumber provides a mock function with given fields: ctx, number
+func (_m *AccountUsecase) GetAccountByNumber(ctx context.Context, number string) (*domain.Account, error) {
+	ret := _m.Called(ctx, number)
 
 	var r0 *domain.Account
-	if rf, ok := ret.Get(0).(func(string) *domain.Account); ok {
-		r0 = rf(number)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.Account); ok {
+		r0 = rf(ctx, number)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Account)
@@ -92,8 +79,8 @@ func (_m *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, er
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(number)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, number)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -101,13 +88,13 @@ func (_m *AccountUsecase) GetAccountByNumber(number string) (*domain.Account, er
 	return r0, r1
 }
 
-// GetAccountByUserID provides a mock function with given fields: userID
-func (_m *AccountUsecase) GetAccountByUserID(userID int64) (*domain.Account, error) {
-	ret := _m.Called(userID)
+// GetAccountByUserID provides a mock function with given fields: ctx, userID
+func (_m *AccountUsecase) GetAccountByUserID(ctx context.Context, userID int64) (*domain.Account, error) {
+	ret := _m.Called(ctx, userID)
 
 	var r0 *domain.Account
-	if rf, ok := ret.Get(0).(func(int64) *domain.Account); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) *domain.Account); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Account)
@@ -115,8 +102,8 @@ func (_m *AccountUsecase) GetAccountByUserID(userID int64) (*domain.Account, err
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -124,13 +111,13 @@ func (_m *AccountUsecase) GetAccountByUserID(userID int64) (*domain.Account, err
 	return r0, r1
 }
 
-// GetAllAccount provides a mock function with given fields:
-func (_m *AccountUsecase) GetAllAccount() ([]domain.Account, error) {
-	ret := _m.Called()
+// GetAllAccount provides a mock function with given fields: ctx
+func (_m *AccountUsecase) GetAllAccount(ctx context.Context) ([]domain.Account, error) {
+	ret := _m.Called(ctx)
 
 	var r0 []domain.Account
-	if rf, ok := ret.Get(0).(func() []domain.Account); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.Account); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Account)
@@ -138,8 +125,8 @@ func (_m *AccountUsecase) GetAllAccount() ([]domain.Account, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -147,13 +134,13 @@ func (_m *AccountUsecase) GetAllAccount() ([]domain.Account, error) {
 	return r0, r1
 }
 
-// TransferMoney provides a mock function with given fields: senderIIN, recipientIIN, amount
-func (_m *AccountUsecase) TransferMoney(senderIIN string, recipientIIN string, amount string) error {
-	ret := _m.Called(senderIIN, recipientIIN, amount)
+// TransferMoney provides a mock function with given fields: ctx, senderAccNum, recipientACCNum, amount
+func (_m *AccountUsecase) TransferMoney(ctx context.Context, senderAccNum string, recipientACCNum string, amount string) error {
+	ret := _m.Called(ctx, senderAccNum, recipientACCNum, amount)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(senderIIN, recipientIIN, amount)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, senderAccNum, recipientACCNum, amount)
 	} else {
 		r0 = ret.Error(0)
 	}

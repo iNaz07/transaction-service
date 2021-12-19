@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	domain "transaction-service/domain"
 
 	mock "github.com/stretchr/testify/mock"
@@ -13,13 +14,13 @@ type AccountRepo struct {
 	mock.Mock
 }
 
-// CreateAccountRepo provides a mock function with given fields: acc
-func (_m *AccountRepo) CreateAccountRepo(acc *domain.Account) error {
-	ret := _m.Called(acc)
+// CreateAccountRepo provides a mock function with given fields: ctx, acc
+func (_m *AccountRepo) CreateAccountRepo(ctx context.Context, acc *domain.Account) error {
+	ret := _m.Called(ctx, acc)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*domain.Account) error); ok {
-		r0 = rf(acc)
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Account) error); ok {
+		r0 = rf(ctx, acc)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -27,13 +28,13 @@ func (_m *AccountRepo) CreateAccountRepo(acc *domain.Account) error {
 	return r0
 }
 
-// DeleteAccountRepo provides a mock function with given fields: iin
-func (_m *AccountRepo) DeleteAccountRepo(iin string) error {
-	ret := _m.Called(iin)
+// DepositMoneyRepo provides a mock function with given fields: ctx, deposit
+func (_m *AccountRepo) DepositMoneyRepo(ctx context.Context, deposit *domain.Deposit) error {
+	ret := _m.Called(ctx, deposit)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(iin)
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Deposit) error); ok {
+		r0 = rf(ctx, deposit)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,27 +42,13 @@ func (_m *AccountRepo) DeleteAccountRepo(iin string) error {
 	return r0
 }
 
-// DepositMoneyRepo provides a mock function with given fields: deposit
-func (_m *AccountRepo) DepositMoneyRepo(deposit *domain.Deposit) error {
-	ret := _m.Called(deposit)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*domain.Deposit) error); ok {
-		r0 = rf(deposit)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GetAccountByIINRepo provides a mock function with given fields: iin
-func (_m *AccountRepo) GetAccountByIINRepo(iin string) ([]domain.Account, error) {
-	ret := _m.Called(iin)
+// GetAccountByIINRepo provides a mock function with given fields: ctx, iin
+func (_m *AccountRepo) GetAccountByIINRepo(ctx context.Context, iin string) ([]domain.Account, error) {
+	ret := _m.Called(ctx, iin)
 
 	var r0 []domain.Account
-	if rf, ok := ret.Get(0).(func(string) []domain.Account); ok {
-		r0 = rf(iin)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []domain.Account); ok {
+		r0 = rf(ctx, iin)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Account)
@@ -69,8 +56,8 @@ func (_m *AccountRepo) GetAccountByIINRepo(iin string) ([]domain.Account, error)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(iin)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, iin)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -78,13 +65,13 @@ func (_m *AccountRepo) GetAccountByIINRepo(iin string) ([]domain.Account, error)
 	return r0, r1
 }
 
-// GetAccountByNumberRepo provides a mock function with given fields: number
-func (_m *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, error) {
-	ret := _m.Called(number)
+// GetAccountByNumberRepo provides a mock function with given fields: ctx, number
+func (_m *AccountRepo) GetAccountByNumberRepo(ctx context.Context, number string) (*domain.Account, error) {
+	ret := _m.Called(ctx, number)
 
 	var r0 *domain.Account
-	if rf, ok := ret.Get(0).(func(string) *domain.Account); ok {
-		r0 = rf(number)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.Account); ok {
+		r0 = rf(ctx, number)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Account)
@@ -92,8 +79,8 @@ func (_m *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(number)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, number)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -101,13 +88,13 @@ func (_m *AccountRepo) GetAccountByNumberRepo(number string) (*domain.Account, e
 	return r0, r1
 }
 
-// GetAccountByUserIDRepo provides a mock function with given fields: userID
-func (_m *AccountRepo) GetAccountByUserIDRepo(userID int64) (*domain.Account, error) {
-	ret := _m.Called(userID)
+// GetAccountByUserIDRepo provides a mock function with given fields: ctx, userID
+func (_m *AccountRepo) GetAccountByUserIDRepo(ctx context.Context, userID int64) (*domain.Account, error) {
+	ret := _m.Called(ctx, userID)
 
 	var r0 *domain.Account
-	if rf, ok := ret.Get(0).(func(int64) *domain.Account); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) *domain.Account); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Account)
@@ -115,8 +102,8 @@ func (_m *AccountRepo) GetAccountByUserIDRepo(userID int64) (*domain.Account, er
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -124,13 +111,13 @@ func (_m *AccountRepo) GetAccountByUserIDRepo(userID int64) (*domain.Account, er
 	return r0, r1
 }
 
-// GetAllAccountRepo provides a mock function with given fields:
-func (_m *AccountRepo) GetAllAccountRepo() ([]domain.Account, error) {
-	ret := _m.Called()
+// GetAllAccountRepo provides a mock function with given fields: ctx
+func (_m *AccountRepo) GetAllAccountRepo(ctx context.Context) ([]domain.Account, error) {
+	ret := _m.Called(ctx)
 
 	var r0 []domain.Account
-	if rf, ok := ret.Get(0).(func() []domain.Account); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.Account); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Account)
@@ -138,8 +125,8 @@ func (_m *AccountRepo) GetAllAccountRepo() ([]domain.Account, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -147,13 +134,13 @@ func (_m *AccountRepo) GetAllAccountRepo() ([]domain.Account, error) {
 	return r0, r1
 }
 
-// TransferMoneyRepo provides a mock function with given fields: tr
-func (_m *AccountRepo) TransferMoneyRepo(tr *domain.Transaction) error {
-	ret := _m.Called(tr)
+// TransferMoneyRepo provides a mock function with given fields: ctx, tr
+func (_m *AccountRepo) TransferMoneyRepo(ctx context.Context, tr *domain.Transaction) error {
+	ret := _m.Called(ctx, tr)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*domain.Transaction) error); ok {
-		r0 = rf(tr)
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Transaction) error); ok {
+		r0 = rf(ctx, tr)
 	} else {
 		r0 = ret.Error(0)
 	}
