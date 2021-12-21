@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+
+	"github.com/rs/zerolog/log"
+
 	"net/http"
 	"time"
 	_handler "transaction-service/accounts/delivery/http"
@@ -17,9 +19,9 @@ import (
 )
 
 func init() {
-	viper.SetConfigFile("config.json")
+	viper.SetConfigFile("../config.json")
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal("get configuration error: ", err)
+		log.Fatal().Err(err).Msg("get configuration error")
 	}
 }
 
@@ -42,7 +44,7 @@ func main() {
 
 	err := e.Start(viper.GetString(`addr`))
 	if err != nil && err != http.ErrServerClosed {
-		log.Fatal(`shutting down the server`, err)
+		log.Fatal().Err(err).Msg("cannot start the server")
 	}
 }
 
@@ -58,7 +60,7 @@ func connectDB() *pgxpool.Pool {
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatalf("Open db error: %v", err)
+		log.Fatal().Err(err).Msg("parse dsn error")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
@@ -66,11 +68,11 @@ func connectDB() *pgxpool.Pool {
 
 	db, err := pgxpool.ConnectConfig(ctx, config)
 	if err != nil {
-		log.Fatalf("Connect db error: %v", err)
+		log.Fatal().Err(err).Msg("connect db error")
 	}
 
 	if err := db.Ping(ctx); err != nil {
-		log.Fatalf("Ping db error: %v", err)
+		log.Fatal().Err(err).Msg("db ping error")
 	}
 
 	//Move all to init.sql
@@ -89,7 +91,7 @@ func connectDB() *pgxpool.Pool {
 		registerDate TEXT NOT NULL,
 		lasttransaction TEXT
 	);`); err != nil {
-		log.Fatalf("Create accounts table error: %v", err)
+		log.Fatal().Err(err).Msg("Error create table: accounts")
 	}
 
 	if _, err = db.Exec(ctx, `
@@ -103,7 +105,7 @@ func connectDB() *pgxpool.Pool {
 		date VARCHAR (255) NOT NULL
 	);
 	`); err != nil {
-		log.Fatalf("Create transactions table error: %v", err)
+		log.Fatal().Err(err).Msg("Error create table: transactions")
 	}
 
 	if _, err = db.Exec(ctx, `
@@ -115,7 +117,7 @@ func connectDB() *pgxpool.Pool {
 		date VARCHAR (255) NOT NULL
 	);
 	`); err != nil {
-		log.Fatalf("Create deposits table error: %v", err)
+		log.Fatal().Err(err).Msg("Error create table: deposits")
 	}
 	return db
 }

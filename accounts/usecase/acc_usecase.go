@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"net/http"
+
 	"fmt"
 	"strconv"
 	"time"
@@ -30,7 +32,7 @@ func (au *AccountUsecase) CreateAccount(ctx context.Context, iin string, userid 
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
 	if err := au.AccRepo.CreateAccountRepo(context, acc); err != nil {
-		return fmt.Errorf("create account error: %w", err)
+		return &domain.LogError{"create account error", err, http.StatusInternalServerError}
 	}
 	return nil
 }
@@ -38,7 +40,7 @@ func (au *AccountUsecase) CreateAccount(ctx context.Context, iin string, userid 
 func (au *AccountUsecase) DepositMoney(ctx context.Context, iin, number, balance string) error {
 	amount, err := strconv.Atoi(balance)
 	if err != nil {
-		return fmt.Errorf("invalid amount: %w", err)
+		return &domain.LogError{"invalid amount.", err, http.StatusBadRequest}
 	}
 	//need to check acc number?
 	deposit := &domain.Deposit{
@@ -50,7 +52,7 @@ func (au *AccountUsecase) DepositMoney(ctx context.Context, iin, number, balance
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
 	if err := au.AccRepo.DepositMoneyRepo(context, deposit); err != nil {
-		return fmt.Errorf("deposit money error: %w", err)
+		return &domain.LogError{"top up account error.", err, http.StatusInternalServerError}
 	}
 	return nil
 }
@@ -58,22 +60,24 @@ func (au *AccountUsecase) DepositMoney(ctx context.Context, iin, number, balance
 func (au *AccountUsecase) TransferMoney(ctx context.Context, senderAccNum, recipientACCNum string, amount string) error {
 	money, err := strconv.Atoi(amount)
 	if err != nil {
-		return fmt.Errorf("invalid amount: %w", err)
+		return &domain.LogError{"invalid amount", err, http.StatusBadRequest}
 	}
 
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
-	acc, err := au.AccRepo.GetAccountByNumberRepo(context, senderAccNum) //check if account exists
 
+	acc, err := au.AccRepo.GetAccountByNumberRepo(context, senderAccNum) //check if account exists
 	if err != nil {
-		return fmt.Errorf("sender account doesn't exist: %w", err)
+		return &domain.LogError{"sender account not found", err, http.StatusNotFound}
 	}
+
 	if acc.Balance <= int64(money) {
-		return fmt.Errorf("not enough balance to transfer")
+		return &domain.LogError{"not enough balance to transfer", fmt.Errorf("insufficient funds"), http.StatusBadRequest}
 	}
+
 	recAcc, err := au.AccRepo.GetAccountByNumberRepo(context, recipientACCNum)
 	if err != nil {
-		return fmt.Errorf("recipient account doesn't exist: %w", err)
+		return &domain.LogError{"recipient account not found", err, http.StatusNotFound}
 	}
 
 	transaction := &domain.Transaction{
@@ -86,7 +90,7 @@ func (au *AccountUsecase) TransferMoney(ctx context.Context, senderAccNum, recip
 	}
 
 	if err := au.AccRepo.TransferMoneyRepo(context, transaction); err != nil {
-		return fmt.Errorf("transaction money error: %w", err)
+		return &domain.LogError{"error occured while transaction", err, http.StatusInternalServerError}
 	}
 	return nil
 }
@@ -95,9 +99,10 @@ func (au *AccountUsecase) GetAccountByIIN(ctx context.Context, iin string) ([]do
 
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
+
 	account, err := au.AccRepo.GetAccountByIINRepo(context, iin)
 	if err != nil {
-		return nil, fmt.Errorf("accounts not found: %w", err)
+		return nil, &domain.LogError{"account not found", err, http.StatusNotFound}
 	}
 	return account, nil
 }
@@ -105,9 +110,10 @@ func (au *AccountUsecase) GetAccountByIIN(ctx context.Context, iin string) ([]do
 func (au *AccountUsecase) GetAccountByNumber(ctx context.Context, number string) (*domain.Account, error) {
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
+
 	account, err := au.AccRepo.GetAccountByNumberRepo(context, number)
 	if err != nil {
-		return nil, fmt.Errorf("account not found: %w", err)
+		return nil, &domain.LogError{"account not found", err, http.StatusNotFound}
 	}
 	return account, nil
 }
@@ -115,9 +121,10 @@ func (au *AccountUsecase) GetAccountByNumber(ctx context.Context, number string)
 func (au *AccountUsecase) GetAllAccount(ctx context.Context) ([]domain.Account, error) {
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
+
 	all, err := au.AccRepo.GetAllAccountRepo(context)
 	if err != nil {
-		return nil, fmt.Errorf("get all account err: %w", err)
+		return nil, &domain.LogError{"get all account error", err, http.StatusInternalServerError}
 	}
 	return all, nil
 }
@@ -125,9 +132,10 @@ func (au *AccountUsecase) GetAllAccount(ctx context.Context) ([]domain.Account, 
 func (au *AccountUsecase) GetAccountByUserID(ctx context.Context, userID int64) (*domain.Account, error) {
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
+
 	acc, err := au.AccRepo.GetAccountByUserIDRepo(context, userID)
 	if err != nil {
-		return nil, fmt.Errorf("account not found: %w", err)
+		return nil, &domain.LogError{"account not found", err, http.StatusNotFound}
 	}
 	return acc, nil
 }
