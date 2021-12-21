@@ -166,8 +166,9 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 		log.Err(logerr.Err).Msg(logerr.Message)
 		return c.Render(logerr.Code, "notify.html", "No available accounts to proceed")
 	}
-	// return c.JSON(http.StatusOK, acc)
-	return c.Render(http.StatusOK, "info.html", acc)
+	// c.Render(http.StatusOK, "info.html", acc)
+	return c.JSON(http.StatusOK, acc)
+	// return c.Render(http.StatusOK, "info.html", acc)
 }
 
 func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {
