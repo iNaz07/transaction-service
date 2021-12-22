@@ -78,7 +78,7 @@ func connectDB() *pgxpool.Pool {
 	//Move all to init.sql
 	//TODO: optimize this, should save old data
 	// if _, err = db.Exec(ctx, `DROP TABLE accounts;`); err != nil {
-	// 	log.Fatalf("Drop table error: %v", err)
+	// 	log.Fatal().Err(err).Msg("Drop table error")
 	// }
 
 	if _, err = db.Exec(ctx, `
@@ -89,7 +89,7 @@ func connectDB() *pgxpool.Pool {
 		balance BIGINT NOT NULL,
         number VARCHAR (255) NOT NULL UNIQUE,
 		registerDate TEXT NOT NULL,
-		lasttransaction TEXT
+		lasttransaction TEXT NOT NULL
 	);`); err != nil {
 		log.Fatal().Err(err).Msg("Error create table: accounts")
 	}
@@ -101,7 +101,7 @@ func connectDB() *pgxpool.Pool {
 		sender_number VARCHAR (255) NOT NULL,
         recipient_number VARCHAR (255) NOT NULL,
 		recipient VARCHAR (255) NOT NULL,
-		amount BIGINT,
+		amount BIGINT NOT NULL,
 		date VARCHAR (255) NOT NULL
 	);
 	`); err != nil {
@@ -113,7 +113,7 @@ func connectDB() *pgxpool.Pool {
 		id SERIAL PRIMARY KEY UNIQUE,
         iin VARCHAR (255) NOT NULL,
         number VARCHAR (255) NOT NULL,
-		amount BIGINT,
+		amount BIGINT NOT NULL,
 		date VARCHAR (255) NOT NULL
 	);
 	`); err != nil {

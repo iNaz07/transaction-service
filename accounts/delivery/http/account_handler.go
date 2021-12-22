@@ -47,7 +47,7 @@ func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.Jwt
 	accGroup.POST("/deposit/:number", handler.DepositAcc)
 	accGroup.POST("/transfer/:number", handler.TransferMoney)
 
-	accGroup.GET("/info/:iin", handler.GetAccountInfo)
+	accGroup.GET("/info/:iin/:service", handler.GetAccountInfo)
 	accGroup.GET("/info", handler.GetAllAccountInfo) //no need?
 }
 
@@ -128,7 +128,7 @@ func (aH *AccountHandler) DepositAcc(c echo.Context) error {
 	}
 
 	balance := c.FormValue("amount")
-
+	fmt.Println("balance", balance)
 	if err := aH.AccUsecase.DepositMoney(ctx, acc.IIN, number, balance); err != nil {
 		logerr := err.(*domain.LogError)
 		log.Err(logerr.Err).Msg(logerr.Message)
@@ -166,9 +166,11 @@ func (aH *AccountHandler) GetAccountInfo(c echo.Context) error {
 		log.Err(logerr.Err).Msg(logerr.Message)
 		return c.Render(logerr.Code, "notify.html", "No available accounts to proceed")
 	}
-	// c.Render(http.StatusOK, "info.html", acc)
-	return c.JSON(http.StatusOK, acc)
-	// return c.Render(http.StatusOK, "info.html", acc)
+	service := c.Param("service")
+	if service == "auth" {
+		return c.JSON(http.StatusOK, acc)
+	}
+	return c.Render(http.StatusOK, "info.html", acc)
 }
 
 func (aH *AccountHandler) GetAllAccountInfo(c echo.Context) error {

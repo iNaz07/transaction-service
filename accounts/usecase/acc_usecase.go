@@ -20,14 +20,14 @@ func NewAccountUsecase(repo domain.AccountRepo, time time.Duration) domain.Accou
 	return &AccountUsecase{AccRepo: repo, ContextTimeout: time}
 }
 
-//TODO: check generate number
 func (au *AccountUsecase) CreateAccount(ctx context.Context, iin string, userid int64) error {
 	acc := &domain.Account{
-		IIN:           iin,
-		UserID:        userid,
-		Balance:       0,
-		RegisterDate:  time.Now().Format("2006-01-02 15:04:05"),
-		AccountNumber: utils.GenerateNumber(),
+		IIN:             iin,
+		UserID:          userid,
+		Balance:         0,
+		RegisterDate:    time.Now().Format("2006-01-02 15:04:05"),
+		AccountNumber:   utils.GenerateNumber(),
+		LastTransaction: "no data",
 	}
 	context, cancel := context.WithTimeout(ctx, au.ContextTimeout)
 	defer cancel()
@@ -42,7 +42,9 @@ func (au *AccountUsecase) DepositMoney(ctx context.Context, iin, number, balance
 	if err != nil {
 		return &domain.LogError{"invalid amount.", err, http.StatusBadRequest}
 	}
-	//need to check acc number?
+	if _, err := au.AccRepo.GetAccountByNumberRepo(ctx, number); err != nil {
+		return &domain.LogError{fmt.Sprintf("account: %s not found", number), err, http.StatusBadRequest}
+	}
 	deposit := &domain.Deposit{
 		IIN:    iin,
 		Number: number,
