@@ -30,7 +30,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 func NewAccountHandler(e *echo.Echo, acc domain.AccountUsecase, token domain.JwtTokenUsecase) {
 	t := &Template{
-		templates: template.Must(template.ParseGlob("../templates/*.html")),
+		templates: template.Must(template.ParseGlob("templates/*.html")),
 	}
 	e.Renderer = t
 	handler := &AccountHandler{AccUsecase: acc, TokenUsecase: token}

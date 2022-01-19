@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	viper.SetConfigFile("../config.json")
+	viper.SetConfigFile("config.json")
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal().Err(err).Msg("get configuration error")
 	}

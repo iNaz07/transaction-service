@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"transaction-service/domain"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -31,21 +30,20 @@ func (ar *AccountRepo) DepositMoneyRepo(ctx context.Context, deposit *domain.Dep
 	if err != nil {
 		return err
 	}
-	fmt.Println("data to deposit", deposit)
-	ct, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1, lasttransaction = $2 WHERE number=$3",
-		deposit.Amount, deposit.Date, deposit.Number)
-	if err != nil {
+	if _, err := tx.Exec(ctx, "UPDATE accounts SET balance = balance+$1, lasttransaction = $2 WHERE number=$3",
+		deposit.Amount, deposit.Date, deposit.Number); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
-	fmt.Println("rows affected after upd acc", ct, ct.RowsAffected())
-	ct1, err := tx.Exec(ctx, "INSERT INTO deposits(iin, number, amount, date) VALUES ($1, $2, $3, $4)",
-		deposit.IIN, deposit.Number, deposit.Amount, deposit.Date)
-	if err != nil {
+	if _, err := tx.Exec(ctx, "INSERT INTO deposits(iin, number, amount, date) VALUES ($1, $2, $3, $4)",
+		deposit.IIN, deposit.Number, deposit.Amount, deposit.Date); err != nil {
 		tx.Rollback(ctx)
 		return err
 	}
-	fmt.Println("rows affected after inserting deposit", ct1, ct1.RowsAffected())
+	if err := tx.Commit(ctx); err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
 	return err
 
 }
